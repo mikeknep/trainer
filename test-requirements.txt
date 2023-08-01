@@ -1,4 +1,4 @@
-lxml
-pandas-stubs
+lxml==4.6.5
+pandas~=1.5
 pyright==1.1.305
-pytest
+pytest==6.1.2

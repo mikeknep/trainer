@@ -1,5 +1,6 @@
 import logging
 import shutil
+
 from contextlib import suppress
 from pathlib import Path
 from typing import Any, Optional, Union
@@ -7,11 +8,11 @@ from typing import Any, Optional, Union
 import pandas as pd
 import requests
 import smart_open
+
 from gretel_client.projects.jobs import Job, Status
 from gretel_client.projects.models import Model
 from gretel_client.projects.projects import Project
 from gretel_client.projects.records import RecordHandler
-
 from gretel_trainer.relational.core import MultiTableException
 
 logger = logging.getLogger(__name__)
@@ -52,10 +53,11 @@ class ExtendedGretelSDK:
         artifact_name: str,
         out_path: Union[str, Path],
     ) -> None:
+        download_link = gretel_object.get_artifact_link(artifact_name)
         try:
-            with gretel_object.get_artifact_handle(
-                artifact_name
-            ) as src, smart_open.open(out_path, "wb") as dest:
+            with smart_open.open(download_link, "rb") as src, smart_open.open(
+                out_path, "wb"
+            ) as dest:
                 shutil.copyfileobj(src, dest)
         except:
             logger.warning(f"Failed to download `{artifact_name}`")
@@ -79,7 +81,7 @@ class ExtendedGretelSDK:
                     return field_dict["value"]
 
     def get_record_handler_data(self, record_handler: RecordHandler) -> pd.DataFrame:
-        with record_handler.get_artifact_handle("data") as data:
+        with smart_open.open(record_handler.get_artifact_link("data"), "rb") as data:
             return pd.read_csv(data)
 
     def start_job_if_possible(
